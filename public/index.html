@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="google-site-verification" content="w0baCh4EZOnmIfUu3CQuF94ruSnikbnTDSXwuygHmb4" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCU Universe Tracker - Track Every Marvel Movie by Phase</title>
@@ -859,8 +860,8 @@
                     `;
 
                     groupObj.movies.forEach(movie => {
-                        // Fallback URL for future movies without posters
-                        const fallbackUrl = `https://placehold.co/400x600/1a1a24/666666?text=${encodeURIComponent(movie.title.replace(/:/g, ':\n').replace(/ /g, '+'))}&font=montserrat`;
+                        // Fallback local SVG for future movies without posters or failed image loads
+                        const fallbackUrl = 'images/placeholder.svg';
                         const imageSrc = movie.poster ? movie.poster : fallbackUrl;
                         
                         // IMDb Badge setup
@@ -881,7 +882,7 @@
                                          loading="lazy"
                                          width="400"
                                          height="600"
-                                         onerror="this.onerror=null; this.src='${fallbackUrl}';"
+                                         onerror="this.onerror=null; this.src='images/placeholder.svg';"
                                          onload="document.getElementById('spinner-${movie.id}').style.display='none'"
                                          alt="${movie.title} poster" 
                                          class="poster-image w-full h-full object-cover opacity-80 group-hover:opacity-100 z-10 relative" 
