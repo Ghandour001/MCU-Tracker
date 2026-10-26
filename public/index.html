@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCU Universe Tracker - Track Every Marvel Movie by Phase</title>
+    <meta name="description" content="Track every Marvel Cinematic Universe movie you've watched, organized by phase, with posters, runtime, and ratings. Sync your MCU progress to the cloud.">
+    <link rel="icon" type="image/svg+xml" href="assets/icons8-avengers.svg">
+    <meta name="theme-color" content="#0f0f13">
+
+    <!-- ========================================================================= -->
+    <!-- SITE_DOMAIN: إعداد النطاق الأساسي الموحد للموقع (قابل للتعديل بسهولة من هنا) -->
+    <!-- ========================================================================= -->
+    <link rel="canonical" href="https://mcu-tracker-4cfc3.web.app/">
+
+    <!-- Open Graph / social preview -->
+    <meta property="og:site_name" content="MCU Universe Tracker">
+    <meta property="og:title" content="MCU Universe Tracker - Track Every Marvel Movie by Phase">
+    <meta property="og:description" content="Track every Marvel Cinematic Universe movie you've watched, organized by phase, with posters, runtime, and ratings. Sync your MCU progress to the cloud.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mcu-tracker-4cfc3.web.app/">
+    <meta property="og:image" content="https://mcu-tracker-4cfc3.web.app/assets/icons8-avengers.svg">
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="MCU Universe Tracker - Track Every Marvel Movie by Phase">
+    <meta name="twitter:description" content="Track every Marvel Cinematic Universe movie you've watched, organized by phase, with posters, runtime, and ratings. Sync your MCU progress to the cloud.">
+    <meta name="twitter:image" content="https://mcu-tracker-4cfc3.web.app/assets/icons8-avengers.svg">
+
+    <!-- JSON-LD WebApplication schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "MCU Universe Tracker",
+        "url": "https://mcu-tracker-4cfc3.web.app/",
+        "description": "Track every Marvel Cinematic Universe movie you've watched, organized by phase, with posters, runtime, and ratings. Sync your MCU progress to the cloud.",
+        "applicationCategory": "EntertainmentApplication",
+        "operatingSystem": "All",
+        "offers": {
+            "@type": "Offer",
+            "price": "0"
+        }
+    }
+    </script>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marvel: '#e23636',
+                        darkbg: '#0f0f13',
+                        cardbg: '#1a1a24'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #0f0f13; color: white; font-family: 'Inter', sans-serif; }
+        .movie-card { transition: all 0.3s ease; }
+        .movie-card:hover { transform: scale(1.03) translateY(-5px); box-shadow: 0 15px 30px -5px rgba(226, 54, 54, 0.4); border-color: #e23636; }
+        .check-overlay { transition: opacity 0.2s ease; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f13; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e23636; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-darkbg/95 backdrop-blur-md border-b border-gray-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            
+            <!-- الصف الأول: الشعار وزر تسجيل الدخول -->
+            <div class="flex justify-between items-center gap-4 mb-4">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 m-0 select-none">
+                    <span class="bg-marvel text-white font-black tracking-tighter px-2 py-1 text-2xl uppercase rounded-sm shadow-md shadow-marvel/30">MCU</span>
+                    <span class="text-xl font-bold text-gray-200 tracking-wide">Tracker</span>
+                </div>
+                
+                <!-- Auth Button -->
+                <button id="auth-btn" class="flex items-center justify-center gap-2 text-sm font-semibold text-gray-300 hover:text-white bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all border border-gray-800 hover:border-gray-600 shadow-sm whitespace-nowrap">
+                    <i class="fab fa-google text-marvel"></i> Sign In
+                </button>
+            </div>
+
+            <!-- الصف الثاني: شريط التقدم -->
+            <div class="w-full flex flex-col gap-1">
+                <div class="flex justify-between text-sm text-gray-400 font-medium">
+                    <span>Overall Progress</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden shadow-inner">
+                    <div id="progress-bar" class="bg-marvel h-2.5 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-end text-xs text-gray-500 font-medium mt-0.5">
+                    <span id="watchtime-text"><i class="far fa-clock mr-1"></i>0h watched of 0h</span>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Static Intro for SEO & Initial Content / مقدمة ثابتة لمحركات البحث والمستخدم -->
+        <section class="mb-8 border-b border-gray-800 pb-6 text-center sm:text-left">
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+                Marvel Cinematic Universe Tracker
+            </h1>
+            <p class="text-gray-400 text-sm sm:text-base max-w-3xl leading-relaxed">
+                Track every Marvel Cinematic Universe movie you've watched across Phase 1 through the Multiverse Saga. Monitor your overall progress and watch time, with your checklist automatically synced to the cloud.
+            </p>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center py-20 text-gray-400">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-marvel mb-4"></i>
+            <p class="text-lg font-medium">Assembling the Universe...</p>
+        </div>
+
+        <!-- Movies Container -->
+        <div id="movies-container" class="hidden flex-col gap-14">
+            <!-- Data will be injected here -->
+        </div>
+    </main>
+
+    <script>
+        // النطاق الأساسي الحي للموقع (ثابت مركزي يمكن تعديله بسهولة)
+        const SITE_DOMAIN = "https://mcu-tracker-4cfc3.web.app";
+
+        // قاعدة بيانات أفلام مارفل وسينما الأبطال الخارقين مقسمة حسب الساجا والمجموعات
+        const mcuData = [
+    {
+        "saga": "The Infinity Saga",
+        "subtitle": "",
+        "groups": [
+            {
+                "phase": "Phase 1",
+                "title": "Avengers Assembled",
+                "movies": [
+                    {
+                        "id": "im1",
+                        "title": "Iron Man",
+                        "year": "2008",
+                        "duration": "2h 6m",
+                        "imdb": "7.9",
+                        "poster": "images/iron-man-2008.webp"
+                    },
+                    {
+                        "id": "ih",
+                        "title": "The Incredible Hulk",
+                        "year": "2008",
+                        "duration": "1h 52m",
+                        "imdb": "6.6",
+                        "poster": "images/the-incredible-hulk-2008.webp"
+                    },
+                    {
+                        "id": "im2",
+                        "title": "Iron Man 2",
+                        "year": "2010",
+                        "duration": "2h 4m",
+                        "imdb": "6.9",
+                        "poster": "images/iron-man-2-2010.webp"
+                    },
+                    {
+                        "id": "th1",
+                        "title": "Thor",
+                        "year": "2011",
+                        "duration": "1h 55m",
+                        "imdb": "7.0",
+                        "poster": "images/thor-2011.webp"
+                    },
+                    {
+                        "id": "ca1",
+                        "title": "Captain America: The First Avenger",
+                        "year": "2011",
+                        "duration": "2h 4m",
+                        "imdb": "6.9",
+                        "poster": "images/captain-america-the-first-avenger-2011.webp"
+                    },
+                    {
+                        "id": "av1",
+                        "title": "The Avengers",
+                        "year": "2012",
+                        "duration": "2h 23m",
+                        "imdb": "8.0",
+                        "poster": "images/the-avengers-2012.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "Phase 2",
+                "title": "Age of Miracles",
+                "movies": [
+                    {
+                        "id": "im3",
+                        "title": "Iron Man 3",
+                        "year": "2013",
+                        "duration": "2h 10m",
+                        "imdb": "7.1",
+                        "poster": "images/iron-man-3-2013.webp"
+                    },
+                    {
+                        "id": "th2",
+                        "title": "Thor: The Dark World",
+                        "year": "2013",
+                        "duration": "1h 52m",
+                        "imdb": "6.8",
+                        "poster": "images/thor-the-dark-world-2013.webp"
+                    },
+                    {
+                        "id": "ca2",
+                        "title": "Captain America: The Winter Soldier",
+                        "year": "2014",
+                        "duration": "2h 16m",
+                        "imdb": "7.8",
+                        "poster": "images/captain-america-the-winter-soldier-2014.webp"
+                    },
+                    {
+                        "id": "gotg1",
+                        "title": "Guardians of the Galaxy",
+                        "year": "2014",
+                        "duration": "2h 1m",
+                        "imdb": "8.0",
+                        "poster": "images/guardians-of-the-galaxy-2014.webp"
+                    },
+                    {
+                        "id": "av2",
+                        "title": "Avengers: Age of Ultron",
+                        "year": "2015",
+                        "duration": "2h 21m",
+                        "imdb": "7.3",
+                        "poster": "images/avengers-age-of-ultron-2015.webp"
+                    },
+                    {
+                        "id": "am1",
+                        "title": "Ant-Man",
+                        "year": "2015",
+                        "duration": "1h 57m",
+                        "imdb": "7.3",
+                        "poster": "images/ant-man-2015.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "Phase 3",
+                "title": "The Infinity War",
+                "movies": [
+                    {
+                        "id": "ca3",
+                        "title": "Captain America: Civil War",
+                        "year": "2016",
+                        "duration": "2h 27m",
+                        "imdb": "7.8",
+                        "poster": "images/captain-america-civil-war-2016.webp"
+                    },
+                    {
+                        "id": "ds1",
+                        "title": "Doctor Strange",
+                        "year": "2016",
+                        "duration": "1h 55m",
+                        "imdb": "7.5",
+                        "poster": "images/doctor-strange-2016.webp"
+                    },
+                    {
+                        "id": "gotg2",
+                        "title": "Guardians of the Galaxy Vol. 2",
+                        "year": "2017",
+                        "duration": "2h 16m",
+                        "imdb": "7.6",
+                        "poster": "images/guardians-of-the-galaxy-vol-2-2017.webp"
+                    },
+                    {
+                        "id": "sm1",
+                        "title": "Spider-Man: Homecoming",
+                        "year": "2017",
+                        "duration": "2h 13m",
+                        "imdb": "7.4",
+                        "poster": "images/spider-man-homecoming-2017.webp"
+                    },
+                    {
+                        "id": "th3",
+                        "title": "Thor: Ragnarok",
+                        "year": "2017",
+                        "duration": "2h 10m",
+                        "imdb": "7.9",
+                        "poster": "images/thor-ragnarok-2017.webp"
+                    },
+                    {
+                        "id": "bp1",
+                        "title": "Black Panther",
+                        "year": "2018",
+                        "duration": "2h 14m",
+                        "imdb": "7.3",
+                        "poster": "images/black-panther-2018.webp"
+                    },
+                    {
+                        "id": "av3",
+                        "title": "Avengers: Infinity War",
+                        "year": "2018",
+                        "duration": "2h 29m",
+                        "imdb": "8.4",
+                        "poster": "images/avengers-infinity-war-2018.webp"
+                    },
+                    {
+                        "id": "am2",
+                        "title": "Ant-Man and the Wasp",
+                        "year": "2018",
+                        "duration": "1h 58m",
+                        "imdb": "7.0",
+                        "poster": "images/ant-man-and-the-wasp-2018.webp"
+                    },
+                    {
+                        "id": "cm1",
+                        "title": "Captain Marvel",
+                        "year": "2019",
+                        "duration": "2h 3m",
+                        "imdb": "6.8",
+                        "poster": "images/captain-marvel-2019.webp"
+                    },
+                    {
+                        "id": "av4",
+                        "title": "Avengers: Endgame",
+                        "year": "2019",
+                        "duration": "3h 1m",
+                        "imdb": "8.4",
+                        "poster": "images/avengers-endgame-2019.webp"
+                    },
+                    {
+                        "id": "sm2",
+                        "title": "Spider-Man: Far From Home",
+                        "year": "2019",
+                        "duration": "2h 9m",
+                        "imdb": "7.4",
+                        "poster": "images/spider-man-far-from-home-2019.webp"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "saga": "The Legacy Era",
+        "subtitle": "Foundations of the Multiverse",
+        "groups": [
+            {
+                "phase": "Spider-Man Series",
+                "title": "Classic & Amazing",
+                "movies": [
+                    {
+                        "id": "sm02",
+                        "title": "Spider-Man",
+                        "year": "2002",
+                        "duration": "2h 1m",
+                        "imdb": "7.4",
+                        "poster": "images/spider-man-2002.webp"
+                    },
+                    {
+                        "id": "sm04",
+                        "title": "Spider-Man 2",
+                        "year": "2004",
+                        "duration": "2h 7m",
+                        "imdb": "7.4",
+                        "poster": "images/spider-man-2-2004.webp"
+                    },
+                    {
+                        "id": "sm07",
+                        "title": "Spider-Man 3",
+                        "year": "2007",
+                        "duration": "2h 19m",
+                        "imdb": "6.3",
+                        "poster": "images/spider-man-3-2007.webp"
+                    },
+                    {
+                        "id": "tasm1",
+                        "title": "The Amazing Spider-Man",
+                        "year": "2012",
+                        "duration": "2h 16m",
+                        "imdb": "6.9",
+                        "poster": "images/the-amazing-spider-man-2012.webp"
+                    },
+                    {
+                        "id": "tasm2",
+                        "title": "The Amazing Spider-Man 2",
+                        "year": "2014",
+                        "duration": "2h 22m",
+                        "imdb": "6.6",
+                        "poster": "images/the-amazing-spider-man-2-2014.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "Fantastic Four",
+                "title": "Original Timelines",
+                "movies": [
+                    {
+                        "id": "ff05",
+                        "title": "Fantastic 4",
+                        "year": "2005",
+                        "duration": "1h 46m",
+                        "imdb": "5.7",
+                        "poster": "images/fantastic-4-2005.webp"
+                    },
+                    {
+                        "id": "ff07",
+                        "title": "Fantastic 4: Rise of the Silver Surfer",
+                        "year": "2007",
+                        "duration": "1h 32m",
+                        "imdb": "5.6",
+                        "poster": "images/fantastic-4-rise-of-the-silver-surfer-2007.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "X-Men Universe",
+                "title": "Mutant Saga",
+                "movies": [
+                    {
+                        "id": "xm00",
+                        "title": "X-Men",
+                        "year": "2000",
+                        "duration": "1h 44m",
+                        "imdb": "7.3",
+                        "poster": "images/x-men-2000.webp"
+                    },
+                    {
+                        "id": "x2",
+                        "title": "X2",
+                        "year": "2003",
+                        "duration": "2h 14m",
+                        "imdb": "7.4",
+                        "poster": "images/x2-2003.webp"
+                    },
+                    {
+                        "id": "xm06",
+                        "title": "X-Men: The Last Stand",
+                        "year": "2006",
+                        "duration": "1h 44m",
+                        "imdb": "6.6",
+                        "poster": "images/x-men-the-last-stand-2006.webp"
+                    },
+                    {
+                        "id": "xmow",
+                        "title": "X-Men Origins: Wolverine",
+                        "year": "2009",
+                        "duration": "1h 47m",
+                        "imdb": "6.5",
+                        "poster": "images/x-men-origins-wolverine-2009.webp"
+                    },
+                    {
+                        "id": "xmfc",
+                        "title": "X-Men: First Class",
+                        "year": "2011",
+                        "duration": "2h 12m",
+                        "imdb": "7.7",
+                        "poster": "images/x-men-first-class-2011.webp"
+                    },
+                    {
+                        "id": "twolv",
+                        "title": "The Wolverine",
+                        "year": "2013",
+                        "duration": "2h 6m",
+                        "imdb": "6.7",
+                        "poster": "images/the-wolverine-2013.webp"
+                    },
+                    {
+                        "id": "xmdofp",
+                        "title": "X-Men: Days of Future Past",
+                        "year": "2014",
+                        "duration": "2h 11m",
+                        "imdb": "7.9",
+                        "poster": "images/x-men-days-of-future-past-2014.webp"
+                    },
+                    {
+                        "id": "dp1",
+                        "title": "Deadpool",
+                        "year": "2016",
+                        "duration": "1h 48m",
+                        "imdb": "8.0",
+                        "poster": "images/deadpool-2016.webp"
+                    },
+                    {
+                        "id": "xmapoc",
+                        "title": "X-Men: Apocalypse",
+                        "year": "2016",
+                        "duration": "2h 24m",
+                        "imdb": "6.8",
+                        "poster": "images/x-men-apocalypse-2016.webp"
+                    },
+                    {
+                        "id": "logan",
+                        "title": "Logan",
+                        "year": "2017",
+                        "duration": "2h 17m",
+                        "imdb": "8.1",
+                        "poster": "images/logan-2017.webp"
+                    },
+                    {
+                        "id": "dp2",
+                        "title": "Deadpool 2",
+                        "year": "2018",
+                        "duration": "1h 59m",
+                        "imdb": "7.6",
+                        "poster": "images/deadpool-2-2018.webp"
+                    },
+                    {
+                        "id": "dkphnx",
+                        "title": "Dark Phoenix",
+                        "year": "2019",
+                        "duration": "1h 54m",
+                        "imdb": "5.7",
+                        "poster": "images/dark-phoenix-2019.webp"
+                    },
+                    {
+                        "id": "newmut",
+                        "title": "The New Mutants",
+                        "year": "2020",
+                        "duration": "1h 34m",
+                        "imdb": "5.3",
+                        "poster": "images/the-new-mutants-2020.webp"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "saga": "The Multiverse Saga",
+        "subtitle": "",
+        "groups": [
+            {
+                "phase": "Phase 4",
+                "title": "A New Universe",
+                "movies": [
+                    {
+                        "id": "bw",
+                        "title": "Black Widow",
+                        "year": "2021",
+                        "duration": "2h 14m",
+                        "imdb": "6.7",
+                        "poster": "images/black-widow-2021.webp"
+                    },
+                    {
+                        "id": "sc",
+                        "title": "Shang-Chi and the Legend of the Ten Rings",
+                        "year": "2021",
+                        "duration": "2h 12m",
+                        "imdb": "7.4",
+                        "poster": "images/shang-chi-and-the-legend-of-the-ten-rings-2021.webp"
+                    },
+                    {
+                        "id": "et",
+                        "title": "Eternals",
+                        "year": "2021",
+                        "duration": "2h 36m",
+                        "imdb": "6.3",
+                        "poster": "images/eternals-2021.webp"
+                    },
+                    {
+                        "id": "sm3",
+                        "title": "Spider-Man: No Way Home",
+                        "year": "2021",
+                        "duration": "2h 28m",
+                        "imdb": "8.2",
+                        "poster": "images/spider-man-no-way-home-2021.webp"
+                    },
+                    {
+                        "id": "ds2",
+                        "title": "Doctor Strange in the Multiverse of Madness",
+                        "year": "2022",
+                        "duration": "2h 6m",
+                        "imdb": "6.9",
+                        "poster": "images/doctor-strange-in-the-multiverse-of-madness-2022.webp"
+                    },
+                    {
+                        "id": "th4",
+                        "title": "Thor: Love and Thunder",
+                        "year": "2022",
+                        "duration": "1h 59m",
+                        "imdb": "6.2",
+                        "poster": "images/thor-love-and-thunder-2022.webp"
+                    },
+                    {
+                        "id": "bp2",
+                        "title": "Black Panther: Wakanda Forever",
+                        "year": "2022",
+                        "duration": "2h 41m",
+                        "imdb": "6.7",
+                        "poster": "images/black-panther-wakanda-forever-2022.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "Phase 5",
+                "title": "The Multiverse Saga Begins",
+                "movies": [
+                    {
+                        "id": "am3",
+                        "title": "Ant-Man and the Wasp: Quantumania",
+                        "year": "2023",
+                        "duration": "2h 4m",
+                        "imdb": "6.1",
+                        "poster": "images/ant-man-and-the-wasp-quantumania-2023.webp"
+                    },
+                    {
+                        "id": "gotg3",
+                        "title": "Guardians of the Galaxy Vol. 3",
+                        "year": "2023",
+                        "duration": "2h 30m",
+                        "imdb": "7.9",
+                        "poster": "images/guardians-of-the-galaxy-vol-3-2023.webp"
+                    },
+                    {
+                        "id": "tm",
+                        "title": "The Marvels",
+                        "year": "2023",
+                        "duration": "1h 45m",
+                        "imdb": "5.5",
+                        "poster": "images/the-marvels-2023.webp"
+                    },
+                    {
+                        "id": "dw",
+                        "title": "Deadpool & Wolverine",
+                        "year": "2024",
+                        "duration": "2h 8m",
+                        "imdb": "8.0",
+                        "poster": "images/deadpool-and-wolverine-2024.webp"
+                    },
+                    {
+                        "id": "ca4",
+                        "title": "Captain America: Brave New World",
+                        "year": "2025",
+                        "duration": "1h 58m",
+                        "imdb": "5.7",
+                        "poster": "images/captain-america-brave-new-world-2025.webp"
+                    },
+                    {
+                        "id": "tb",
+                        "title": "Thunderbolts*",
+                        "year": "2025",
+                        "duration": "2h 7m",
+                        "imdb": "7.1",
+                        "poster": "images/thunderbolts-2025.webp"
+                    }
+                ]
+            },
+            {
+                "phase": "Phase 6",
+                "title": "Climax of the Multiverse",
+                "movies": [
+                    {
+                        "id": "ff",
+                        "title": "The Fantastic Four: First Steps",
+                        "year": "2025",
+                        "duration": "1h 54m",
+                        "imdb": "6.8",
+                        "poster": "images/the-fantastic-four-first-steps-2025.webp"
+                    },
+                    {
+                        "id": "sm4",
+                        "title": "Spider-Man: Brand New Day",
+                        "year": "2026",
+                        "duration": "2h 25m",
+                        "imdb": "8.2",
+                        "poster": "images/spider-man-brand-new-day-2026.webp"
+                    },
+                    {
+                        "id": "av5",
+                        "title": "Avengers: Doomsday",
+                        "year": "2026",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": "images/avengers-doomsday-2026.webp"
+                    },
+                    {
+                        "id": "av6",
+                        "title": "Avengers: Secret Wars",
+                        "year": "2027",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "saga": "Future Films",
+        "subtitle": "Beyond the Multiverse",
+        "groups": [
+            {
+                "phase": "Future Releases",
+                "title": "Upcoming Projects",
+                "movies": [
+                    {
+                        "id": "bp3",
+                        "title": "Black Panther 3",
+                        "year": "2028",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    },
+                    {
+                        "id": "aw",
+                        "title": "Armor Wars",
+                        "year": "TBD",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    },
+                    {
+                        "id": "bl",
+                        "title": "Blade",
+                        "year": "TBD",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    },
+                    {
+                        "id": "sc2",
+                        "title": "Untitled Shang-Chi Sequel",
+                        "year": "TBD",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    },
+                    {
+                        "id": "xm",
+                        "title": "Untitled X-Men Film",
+                        "year": "TBD",
+                        "duration": "TBD",
+                        "imdb": "N/A",
+                        "poster": ""
+                    }
+                ]
+            }
+        ]
+    }
+];
+
+        // 💡 تم تغيير let لـ var عشان فايربيز يقدر يقرأ المتغير
+        var userProgress = {};
+        let totalMovies = 0;
+        const STORAGE_KEY = 'mcu_tracker_progress';
+
+        // حساب إجمالي عدد الأفلام عبر جميع الساجات والمجموعات
+        mcuData.forEach(saga => {
+            saga.groups.forEach(group => {
+                totalMovies += group.movies.length;
+            });
+        });
+
+        // Parse a duration string like "2h 6m" or "42m" into total minutes.
+        // Returns null for unreleased movies where duration is "TBD".
+        function parseDuration(durationStr) {
+            if (!durationStr || durationStr === "TBD") return null;
+            const hMatch = durationStr.match(/(\d+)h/);
+            const mMatch = durationStr.match(/(\d+)m/);
+            const hours = hMatch ? parseInt(hMatch[1], 10) : 0;
+            const mins = mMatch ? parseInt(mMatch[1], 10) : 0;
+            return hours * 60 + mins;
+        }
+
+        function formatMinutes(totalMins) {
+            const h = Math.floor(totalMins / 60);
+            const m = totalMins % 60;
+            return m ? `${h}h ${m}m` : `${h}h`;
+        }
+
+        // إجمالي وقت المشاهدة لجميع الأفلام التي صدرت رسمياً (استثناء الأفلام المستقبلية ذات المدة TBD)
+        let totalSagaMinutes = 0;
+        mcuData.forEach(saga => {
+            saga.groups.forEach(group => {
+                group.movies.forEach(movie => {
+                    const mins = parseDuration(movie.duration);
+                    if (mins) totalSagaMinutes += mins;
+                });
+            });
+        });
+
+        // Initialize App
+        function initApp() {
+            loadProgress();
+            renderUI();
+            updateUIState();
+        }
+
+        // Load progress from Local Storage
+        function loadProgress() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    userProgress = JSON.parse(stored);
+                }
+            } catch (error) {
+                console.error("Error loading progress:", error);
+                userProgress = {};
+            }
+        }
+
+        // Save progress to Local Storage
+        function saveProgress() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+            } catch (error) {
+                console.error("Error saving progress:", error);
+            }
+        }
+
+        // دالة رسم الواجهة مع تقسيم الساجات والمجموعات
+        function renderUI() {
+            const container = document.getElementById('movies-container');
+            const loading = document.getElementById('loading-state');
+            
+            let html = '';
+            let gIndex = 0;
+
+            mcuData.forEach(saga => {
+                html += `
+                    <section class="saga-section flex flex-col gap-8">
+                        <!-- عنوان الساجا الرئيسي -->
+                        <div class="flex items-center gap-3 border-b-2 border-marvel pb-3 pt-2">
+                            <span class="w-2.5 h-8 bg-marvel rounded-sm shadow-md shadow-marvel/30"></span>
+                            <div>
+                                <h2 class="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider">${saga.saga}</h2>
+                                ${saga.subtitle ? `<p class="text-gray-400 text-xs sm:text-sm font-semibold tracking-wide uppercase mt-0.5">${saga.subtitle}</p>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-10">
+                `;
+
+                saga.groups.forEach(groupObj => {
+                    html += `
+                        <div class="group-section">
+                            <div class="flex flex-col md:flex-row md:items-end justify-between mb-5 border-b border-gray-800 pb-2">
+                                <div>
+                                    <h3 class="text-xl md:text-2xl font-black text-white tracking-tight">${groupObj.phase}</h3>
+                                    <p class="text-marvel font-semibold tracking-wide text-xs md:text-sm mt-1 uppercase">${groupObj.title}</p>
+                                </div>
+                                <div class="text-gray-400 text-sm font-semibold mt-2 md:mt-0 bg-gray-900 px-3 py-1 rounded-full border border-gray-800" id="group-progress-${gIndex}">
+                                    0 / ${groupObj.movies.length} Watched
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    `;
+
+                    groupObj.movies.forEach(movie => {
+                        // Fallback URL for future movies without posters
+                        const fallbackUrl = `https://placehold.co/400x600/1a1a24/666666?text=${encodeURIComponent(movie.title.replace(/:/g, ':\n').replace(/ /g, '+'))}&font=montserrat`;
+                        const imageSrc = movie.poster ? movie.poster : fallbackUrl;
+                        
+                        // IMDb Badge setup
+                        const imdbBadge = movie.imdb && movie.imdb !== "N/A" 
+                            ? `<div class="absolute top-2 right-2 bg-black/80 text-yellow-500 text-xs font-bold px-2 py-1 rounded-md z-30 backdrop-blur-sm border border-yellow-500/30 shadow-lg flex items-center gap-1"><i class="fas fa-star"></i> ${movie.imdb}</div>` 
+                            : '';
+                        
+                        html += `
+                            <div class="movie-card relative bg-cardbg rounded-xl overflow-hidden cursor-pointer group border border-gray-800 flex flex-col h-full shadow-md" 
+                                 onclick="toggleMovie('${movie.id}')"
+                                 id="card-${movie.id}">
+                                
+                                <!-- Poster Area -->
+                                <div class="relative aspect-[2/3] w-full bg-gray-900 overflow-hidden flex items-center justify-center">
+                                    ${imdbBadge}
+                                    <!-- Image Tag with lazy loading & explicit dimensions to prevent layout shift -->
+                                    <img src="${imageSrc}" 
+                                         loading="lazy"
+                                         width="400"
+                                         height="600"
+                                         onerror="this.onerror=null; this.src='${fallbackUrl}';"
+                                         onload="document.getElementById('spinner-${movie.id}').style.display='none'"
+                                         alt="${movie.title} poster" 
+                                         class="poster-image w-full h-full object-cover opacity-80 group-hover:opacity-100 z-10 relative" 
+                                         id="img-${movie.id}">
+                                    
+                                    <!-- Loading Spinner -->
+                                    <div id="spinner-${movie.id}" class="absolute inset-0 flex items-center justify-center bg-gray-900 z-0 pointer-events-none">
+                                        <i class="fas fa-spinner fa-spin text-gray-700 text-2xl"></i>
+                                    </div>
+                                    
+                                    <!-- Check Overlay -->
+                                    <div id="overlay-${movie.id}" class="check-overlay absolute inset-0 bg-black/65 flex items-center justify-center opacity-0 z-20 backdrop-blur-[2px]">
+                                        <div class="bg-marvel text-white rounded-full w-14 h-14 flex items-center justify-center transform scale-50 transition-transform duration-300 shadow-[0_0_15px_rgba(226,54,54,0.7)]" id="check-icon-${movie.id}">
+                                            <i class="fas fa-check text-2xl"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Details Area -->
+                                <div class="p-4 flex-grow flex flex-col justify-between bg-gradient-to-t from-cardbg to-gray-900 border-t border-gray-800">
+                                    <h4 class="font-bold text-sm md:text-base text-gray-100 leading-tight mb-3">${movie.title}</h4>
+                                    
+                                    <div class="flex justify-between items-center text-xs font-semibold text-gray-400">
+                                        <span class="bg-darkbg px-2 py-1 rounded shadow-inner border border-gray-800"><i class="far fa-calendar-alt text-marvel/80 mr-1"></i>${movie.year}</span>
+                                        <span class="bg-darkbg px-2 py-1 rounded shadow-inner border border-gray-800"><i class="far fa-clock text-marvel/80 mr-1"></i>${movie.duration}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                    gIndex++;
+                });
+
+                html += `
+                        </div>
+                    </section>
+                `;
+            });
+
+            container.innerHTML = html;
+            loading.style.display = 'none';
+            container.style.display = 'flex';
+        }
+
+        window.toggleMovie = function(movieId) {
+            const isWatched = !userProgress[movieId];
+            userProgress[movieId] = isWatched;
+            saveProgress();
+            updateUIState();
+        };
+
+        // دالة تحديث حالة الواجهة وحساب النسب والأوقات لجميع الساجات
+        function updateUIState() {
+            let totalWatched = 0;
+            let watchedMinutes = 0;
+            let gIndex = 0;
+
+            mcuData.forEach(saga => {
+                saga.groups.forEach(groupObj => {
+                    let groupWatched = 0;
+
+                    groupObj.movies.forEach(movie => {
+                        const isWatched = userProgress[movie.id];
+                        const card = document.getElementById(`card-${movie.id}`);
+                        const overlay = document.getElementById(`overlay-${movie.id}`);
+                        const checkIcon = document.getElementById(`check-icon-${movie.id}`);
+                        
+                        if (card && overlay && checkIcon) {
+                            if (isWatched) {
+                                groupWatched++;
+                                totalWatched++;
+                                const mins = parseDuration(movie.duration);
+                                if (mins) watchedMinutes += mins;
+                                
+                                // Visuals for watched state
+                                card.classList.add('border-marvel');
+                                card.classList.remove('border-gray-800');
+                                overlay.classList.remove('opacity-0');
+                                overlay.classList.add('opacity-100');
+                                checkIcon.classList.remove('scale-50');
+                                checkIcon.classList.add('scale-100');
+                            } else {
+                                // Visuals for unwatched state
+                                card.classList.remove('border-marvel');
+                                card.classList.add('border-gray-800');
+                                overlay.classList.add('opacity-0');
+                                overlay.classList.remove('opacity-100');
+                                checkIcon.classList.add('scale-50');
+                                checkIcon.classList.remove('scale-100');
+                            }
+                        }
+                    });
+
+                    // Update Group Progress
+                    const groupProgressEl = document.getElementById(`group-progress-${gIndex}`);
+                    if (groupProgressEl) {
+                        groupProgressEl.innerHTML = `<span class="${groupWatched === groupObj.movies.length ? 'text-marvel font-bold' : 'text-gray-200'}">${groupWatched}</span> / ${groupObj.movies.length} Watched`;
+                    }
+                    gIndex++;
+                });
+            });
+
+            // Update Overall Progress Bar
+            const progressPercent = totalMovies === 0 ? 0 : Math.round((totalWatched / totalMovies) * 100);
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('progress-text').innerText = `${progressPercent}% (${totalWatched}/${totalMovies})`;
+
+            // Update Watch Time
+            const watchtimeEl = document.getElementById('watchtime-text');
+            if (watchtimeEl) {
+                watchtimeEl.innerHTML = `<i class="far fa-clock mr-1"></i>${formatMinutes(watchedMinutes)} watched of ${formatMinutes(totalSagaMinutes)}`;
+            }
+        }
+
+        // Initialize App
+        initApp();
+    </script>
+    
+    <!-- 💡 كود فايربيز الجديد والمعدل -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // الاستيراد بقى لـ signInWithPopup بس
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgZyiPB4kFZY5yGUDJCEJlMZzS-zXFo-c",
+            authDomain: "mcu-tracker-4cfc3.firebaseapp.com",
+            projectId: "mcu-tracker-4cfc3",
+            storageBucket: "mcu-tracker-4cfc3.firebasestorage.app",
+            messagingSenderId: "1008416228827",
+            appId: "1:1008416228827:web:458d963650a3c54f8553fe"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        const authBtn = document.getElementById('auth-btn');
+        let currentUser = null;
+
+        // دالة إظهار إشعار الخطأ عند تعذر المزامنة مع السحابة (تختفي تلقائياً بعد 4 ثوانٍ)
+        let toastTimeout = null;
+        function showSyncErrorToast(message = "Couldn't sync your progress to the cloud. It's saved locally.") {
+            const toast = document.getElementById('sync-toast');
+            const msgEl = document.getElementById('sync-toast-msg');
+            if (!toast) return;
+
+            if (msgEl) {
+                msgEl.textContent = message;
+            }
+
+            toast.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                toast.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+            }, 4000);
+        }
+
+        authBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                await signOut(auth);
+            } else {
+                try {
+                    // استخدام Popup هو الحل الوحيد المعتمد والآمن للموبايل والكمبيوتر حالياً
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("خطأ في تسجيل الدخول:", error);
+                }
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user) {
+                authBtn.innerHTML = `<i class="fas fa-sign-out-alt text-gray-400"></i> ${user.displayName.split(' ')[0]}`;
+                authBtn.classList.add('bg-cardbg');
+                
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    // Merge cloud progress with whatever was tracked locally as a
+                    // guest, instead of overwriting one with the other — a movie
+                    // counts as watched if either source has it checked, so
+                    // sign-in never erases progress made before logging in.
+                    const localStored = localStorage.getItem('mcu_tracker_progress');
+                    const localProgress = localStored ? JSON.parse(localStored) : {};
+                    const cloudProgress = docSnap.exists() ? (docSnap.data().progress || {}) : {};
+                    const mergedProgress = { ...localProgress, ...cloudProgress };
+                    Object.keys(localProgress).forEach(id => {
+                        if (localProgress[id]) mergedProgress[id] = true;
+                    });
+
+                    window.userProgress = mergedProgress;
+                    await setDoc(docRef, { progress: mergedProgress }, { merge: true });
+                    localStorage.setItem('mcu_tracker_progress', JSON.stringify(mergedProgress));
+                    window.updateUIState();
+                } catch (error) {
+                    // تسجيل الخطأ وإظهار إشعار للمستخدم بأن التقدم محفوظ محلياً
+                    console.error("خطأ في مزامنة بيانات السحابة:", error);
+                    showSyncErrorToast("Couldn't sync your progress to the cloud. It's saved locally.");
+                    // الحفاظ على التقدم المحلي المتاح وتحديث الواجهة
+                    const localStored = localStorage.getItem('mcu_tracker_progress');
+                    window.userProgress = localStored ? JSON.parse(localStored) : (window.userProgress || {});
+                    window.updateUIState();
+                }
+            } else {
+                authBtn.innerHTML = `<i class="fab fa-google text-marvel"></i> Sign In`;
+                authBtn.classList.remove('bg-cardbg');
+                
+                const stored = localStorage.getItem('mcu_tracker_progress');
+                window.userProgress = stored ? JSON.parse(stored) : {};
+                window.updateUIState();
+            }
+        });
+
+        const originalToggleMovie = window.toggleMovie;
+        window.toggleMovie = async function(movieId) {
+            originalToggleMovie(movieId);
+            
+            if (currentUser) {
+               try {
+                   await setDoc(doc(db, "users", currentUser.uid), {
+                       progress: window.userProgress
+                   }, { merge: true });
+               } catch (error) {
+                   console.error("خطأ في حفظ البيانات:", error);
+                   // إظهار تنبيه للمستخدم في حالة تعذر الحفظ السحابي
+                   showSyncErrorToast("Couldn't sync your progress to the cloud. It's saved locally.");
+               }
+            }
+        };
+    </script>
+
+    <!-- Toast Notification for Cloud Sync Errors / تنبيه فشل المزامنة السحابية -->
+    <div id="sync-toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-cardbg border border-marvel/50 text-gray-200 px-4 py-3 rounded-lg shadow-2xl transition-all duration-300 transform translate-y-8 opacity-0 pointer-events-none max-w-sm" role="alert" aria-live="assertive">
+        <i class="fas fa-exclamation-circle text-marvel text-lg flex-shrink-0"></i>
+        <span id="sync-toast-msg" class="text-sm font-medium">Couldn't sync your progress to the cloud. It's saved locally.</span>
+    </div>
+</body>
+</html>
